@@ -92,7 +92,7 @@ Limit:    1,000,000 tokens (1000k)
 ### Install from PyPI
 
 ```bash
-pip install tokenwise
+pip install mcp-tokenwise
 ```
 
 ### Configure in your IDE
