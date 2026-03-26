@@ -5,6 +5,9 @@ build-backend = "hatchling.build"
 [project]
 name = "tokenwise"
 version = "0.1.0"
+authors = [
+  { name = "Raj Shah" }
+]
 description = "Free, local MCP server for context window visibility across all major AI models"
 readme = "README.md"
 license = { text = "MIT" }
