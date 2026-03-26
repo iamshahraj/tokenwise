@@ -35,14 +35,37 @@ It exposes tools your IDE can call to understand exactly what's happening with y
 
 ### Example output from `analyze_context`
 
-```
+```text
 Context Usage [claude-sonnet-4-5]
 ████████████░░░░░░░░ 62% (124,000 / 200,000 tokens)
+├── System Prompt:  8,200
+├── IDE Hidden Rules: 4,100
+├── Conversation:   68,300
+├── Files:          43,400
+└── Available:      76,000
+```
 
-├── System prompt:    8,200 tokens  (4%)
-├── Conversation:    68,300 tokens  (34%)
-├── Files in context: 47,500 tokens  (24%)
-└── Available:        76,000 tokens  (38%)
+*Note: `tokenwise` also automatically checks your folder for things like `.cursorrules` or `.clinerules` so their hidden token usage is correctly included in the total. It just counts the tokens locally—nothing is ever stored or sent out.*
+
+### Example output from `warn_threshold`
+
+```text
+⚠️  95% threshold crossed — 192,400 / 200,000 tokens used (96.2%). Consider trimming context.
+
+  Model:      claude-sonnet-4-5
+  Tokens:     192,400 / 200,000
+  Usage:      96.2%
+  Triggered:  70%, 85%, 95%
+```
+
+### Example output from `get_model_limits`
+
+If you ever forget what the maximum limit is for the specific model you're chatting with, just ask your AI *"what is the limit for gemini-2.0-pro?"* and it will check its internal registry:
+
+```text
+Model:    gemini-2.0-pro
+Provider: Google
+Limit:    1,000,000 tokens (1000k)
 ```
 
 ---

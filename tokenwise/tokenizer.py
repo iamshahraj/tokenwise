@@ -7,6 +7,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 import re
+import os
+import glob
 
 
 # ---------------------------------------------------------------------------
@@ -97,6 +99,7 @@ class ContextBreakdown:
     status: str
     bar: str
     system_tokens: int
+    ide_rules_tokens: int
     history_tokens: int
     files_tokens: int
     available_tokens: int
@@ -243,6 +246,40 @@ def count_tokens(text: str, model: str) -> TokenCount:
     )
 
 
+def _get_ide_rules_text() -> str:
+    """Scan the current working directory for common IDE rule files."""
+    ide_text = ""
+    common_files = [
+        ".cursorrules",
+        ".windsurfrules",
+        ".clinerules",
+        ".roorules",
+        ".github/copilot-instructions.md",
+        ".continue/config.json",
+    ]
+    for filename in common_files:
+        if os.path.exists(filename):
+            try:
+                with open(filename, "r", encoding="utf-8") as f:
+                    ide_text += f.read() + "\n"
+            except Exception:
+                pass
+    
+    # Check Cursor MDC rules
+    try:
+        mdc_files = glob.glob(".cursor/rules/**/*.mdc", recursive=True)
+        for filename in mdc_files:
+            try:
+                with open(filename, "r", encoding="utf-8") as f:
+                    ide_text += f.read() + "\n"
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    return ide_text
+
+
 def analyze_context(
     system: str = "",
     history: list[dict] | None = None,
@@ -264,8 +301,11 @@ def analyze_context(
     history_text   = " ".join(m.get("content", "") for m in history)
     history_tokens = _count_tokens_for_text(history_text, model) if history_text else 0
     files_tokens   = _count_tokens_for_text(files, model) if files else 0
+    
+    ide_rules_text   = _get_ide_rules_text()
+    ide_rules_tokens = _count_tokens_for_text(ide_rules_text, model) if ide_rules_text else 0
 
-    total     = system_tokens + history_tokens + files_tokens
+    total     = system_tokens + history_tokens + files_tokens + ide_rules_tokens
     limit     = _get_limit(model)
     pct       = round(total / limit * 100, 1)
     provider  = _detect_provider(model)
@@ -277,6 +317,7 @@ def analyze_context(
         f"Context Usage [{model}]\n"
         f"{bar} {pct}% ({total:,} / {limit:,} tokens)\n\n"
         f"├── System prompt:     {system_tokens:>8,} tokens\n"
+        f"├── IDE Hidden Rules:  {ide_rules_tokens:>8,} tokens\n"
         f"├── Conversation:      {history_tokens:>8,} tokens\n"
         f"├── Files in context:  {files_tokens:>8,} tokens\n"
         f"└── Available:         {available:>8,} tokens"
@@ -291,6 +332,7 @@ def analyze_context(
         status            = _status(pct),
         bar               = bar,
         system_tokens     = system_tokens,
+        ide_rules_tokens  = ide_rules_tokens,
         history_tokens    = history_tokens,
         files_tokens      = files_tokens,
         available_tokens  = available,
