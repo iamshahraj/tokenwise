@@ -47,3 +47,6 @@ tokenwise = "tokenwise.server:run"
 Homepage = "https://github.com/iamshahraj/tokenwise"
 Repository = "https://github.com/iamshahraj/tokenwise"
 Issues = "https://github.com/iamshahraj/tokenwise/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["tokenwise"]
